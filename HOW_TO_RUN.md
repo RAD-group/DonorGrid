@@ -65,7 +65,20 @@ You should see INSERT statements confirm the data loaded.
 ---
 
 ## STEP 3: START SPRING BOOT BACKEND
-Open a NEW terminal window:
+Open a NEW terminal window. The backend reads its secrets from environment
+variables (see .env.example); it refuses to start without JWT_SECRET.
+
+On Windows (CMD):
+
+    set DB_PASSWORD=bloodpass123
+    set JWT_SECRET=<at least 32 random characters>
+
+On Mac/Linux:
+
+    export DB_PASSWORD=bloodpass123
+    export JWT_SECRET="$(openssl rand -base64 48)"
+
+Use the database password you chose in Step 2. Then:
 
     cd backend
     mvn clean install -DskipTests
@@ -113,10 +126,9 @@ You should see: {"status":"Blood Donation ML Service running OK"}
 1. Go to https://huggingface.co → Sign Up (free)
 2. Click your profile → Settings → Access Tokens → New Token → Read → Generate
 3. Copy token (starts with hf_)
-4. Open ml-service/main.py
-5. Find line: HF_KEY = "hf_PASTE_YOUR_KEY_HERE"
-6. Replace with your key: HF_KEY = "hf_abcdefg123..."
-7. Save file, the server auto-reloads
+4. Before starting the ML service, set it in that terminal:
+   Windows: set HF_API_KEY=hf_...    Mac/Linux: export HF_API_KEY=hf_...
+5. Never write the key into main.py or any file in git
 
 ---
 
@@ -178,7 +190,7 @@ If it doesn't open, manually go to: http://localhost:3000
 ## RUNNING ORDER (EVERY TIME)
 Open 3 terminal windows and run in this order:
 
-Terminal 1 (Backend):
+Terminal 1 (Backend, after setting DB_PASSWORD and JWT_SECRET as in Step 3):
     cd backend && mvn spring-boot:run
 
 Terminal 2 (ML Service):
@@ -193,6 +205,6 @@ Terminal 3 (Frontend):
 - Java: 17 (JDK 17)
 - Spring Boot: 3.2.0
 - Maven: 3.9+
-- Python: 3.10+
+- Python: 3.12 (the saved models need scikit-learn 1.9.1, as pinned in requirements.txt)
 - Node.js: 18+
 - PostgreSQL: 14+

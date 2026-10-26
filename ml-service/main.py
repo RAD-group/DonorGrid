@@ -8,10 +8,10 @@ app = FastAPI(title="Blood Donation ML Service")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8080").split(","),
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 
 # Load models
@@ -30,10 +30,10 @@ print("✅ All 4 ML models loaded successfully")
 # 1. Go to https://huggingface.co → Sign Up (free)
 # 2. Click Profile → Settings → Access Tokens → New Token → Read → Generate
 # 3. Copy token (starts with hf_...)
-# 4. Paste it below replacing hf_PASTE_YOUR_KEY_HERE
+# 4. Set it in the environment: HF_API_KEY=hf_... (see .env.example)
 # The chatbot works WITHOUT this key using the smart fallback below
 # ─────────────────────────────────────────────────────────────────────────────
-HF_KEY = "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"
+HF_KEY = os.environ.get("HF_API_KEY", "")  # never write the key in the code
 HF_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta:featherless-ai"
 
 BG_MAP = {"A+":0,"A-":1,"B+":2,"B-":3,"AB+":4,"AB-":5,"O+":6,"O-":7}
