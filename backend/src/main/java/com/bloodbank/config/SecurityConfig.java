@@ -1,6 +1,7 @@
 package com.bloodbank.config;
 import com.bloodbank.security.JwtFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -15,6 +16,7 @@ import java.util.List;
 @Configuration @EnableWebSecurity
 public class SecurityConfig {
     @Autowired JwtFilter jwtFilter;
+    @Value("${cors.allowed-origins}") private String allowedOrigins;
 
     @Bean
     public SecurityFilterChain chain(HttpSecurity http) throws Exception {
@@ -46,9 +48,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource cors() {
         var cfg = new CorsConfiguration();
-        cfg.setAllowedOriginPatterns(List.of("*"));
+        cfg.setAllowedOrigins(List.of(allowedOrigins.split(",")));
         cfg.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS","PATCH"));
-        cfg.setAllowedHeaders(List.of("*"));
+        cfg.setAllowedHeaders(List.of("Authorization","Content-Type"));
         cfg.setAllowCredentials(true);
         var src = new UrlBasedCorsConfigurationSource();
         src.registerCorsConfiguration("/**", cfg);

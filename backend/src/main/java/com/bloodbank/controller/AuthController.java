@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
+import java.util.Set;
 
 @RestController @RequestMapping("/api/auth")
 public class AuthController {
@@ -14,8 +15,19 @@ public class AuthController {
     @Autowired JwtUtil jwt;
     @Autowired PasswordEncoder enc;
 
+    // Roles a person may choose when signing up. SUPER_ADMIN is never self-assigned.
+    private static final Set<String> SIGNUP_ROLES = Set.of("DONOR", "CAMP_COORDINATOR", "HOSPITAL_ADMIN");
+
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody Map<String,String> b) {
+        String username = b.get("username"), email = b.get("email"), password = b.get("password");
+        String role = b.getOrDefault("role", "DONOR");
+        if (username == null || username.isBlank() || email == null || !email.contains("@")
+                || password == null || password.length() < 8)
+            return ResponseEntity.badRequest().body(Map.of("error",
+                "Username, a valid email and a password of at least 8 characters are required"));
+        if (!SIGNUP_ROLES.contains(role))
+            return ResponseEntity.badRequest().body(Map.of("error","This role cannot be chosen at signup"));
         if (repo.existsByUsername(b.get("username")))
             return ResponseEntity.badRequest().body(Map.of("error","Username already taken"));
         if (repo.existsByEmail(b.get("email")))
@@ -23,7 +35,7 @@ public class AuthController {
         User u = User.builder()
             .username(b.get("username")).email(b.get("email"))
             .password(enc.encode(b.get("password")))
-            .role(b.getOrDefault("role","DONOR")).build();
+            .role(role).build();
         repo.save(u);
         return ResponseEntity.ok(Map.of("message","Account created! Please login."));
     }
@@ -31,13 +43,10 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String,String> b) {
         var opt = repo.findByUsername(b.get("username"));
-        if (opt.isEmpty())
-            return ResponseEntity.status(401).body(Map.of("error",
-                "Username not found. Use: admin, donor1, coordinator1, or hospitaladmin"));
+        // One message for both cases, so the answer never reveals which usernames exist
+        if (opt.isEmpty() || b.get("password") == null || !enc.matches(b.get("password"), opt.get().getPassword()))
+            return ResponseEntity.status(401).body(Map.of("error","Invalid username or password"));
         User u = opt.get();
-        if (!enc.matches(b.get("password"), u.getPassword()))
-            return ResponseEntity.status(401).body(Map.of("error",
-                "Wrong password. Default password is: password123"));
         return ResponseEntity.ok(Map.of(
             "token", jwt.generate(u.getUsername(), u.getRole()),
             "role",  u.getRole(),

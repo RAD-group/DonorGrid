@@ -19,3 +19,8 @@ dist/
 # Java / Spring Boot
 target/
 *.class
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc

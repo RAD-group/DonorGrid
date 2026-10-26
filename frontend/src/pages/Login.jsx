@@ -7,7 +7,6 @@ const ROLES=[
   {v:"DONOR",icon:"🩸",label:"Donor"},
   {v:"CAMP_COORDINATOR",icon:"🏕️",label:"Coordinator"},
   {v:"HOSPITAL_ADMIN",icon:"🏥",label:"Hospital Admin"},
-  {v:"SUPER_ADMIN",icon:"🛡️",label:"Super Admin"},
 ];
 
 export default function Login(){
